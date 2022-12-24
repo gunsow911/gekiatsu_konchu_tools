@@ -1,38 +1,42 @@
 import fs from 'fs'
-import { parse } from 'csv-parse/sync';
 import { Feature, FeatureCollection, GeoJSON, MultiPolygon } from 'geojson';
+import yargs from 'yargs'
 
+/**
+ * シェープファイルからエクスポートしたGeoJSONに樹林簿データをマージする 
+ */
 
 type TreeId = {
   id: string
-  data: {[n: string]: number}
+  area: {[n: string]: number}
 }
 
 
-const inputA = fs.readFileSync('./out/treeId.json', 'utf-8');
-const inputB = fs.readFileSync('./data/hayashi.geojson', 'utf-8');
+const argv = yargs(process.argv.slice(2))
+  .parseSync();
 
-const treeIds = JSON.parse(inputA) as TreeId[]
-const geoJson = JSON.parse(inputB) as FeatureCollection<MultiPolygon, {id: number}>
+const reportInput = fs.readFileSync(argv._[0], 'utf-8');
+const geoJsonInput = fs.readFileSync(argv._[1], 'utf-8');
+
+const treeIds = JSON.parse(reportInput) as TreeId[]
+const geoJson = JSON.parse(geoJsonInput) as FeatureCollection<MultiPolygon, {林班: number}>
 
 const features: Feature<MultiPolygon, {id: number, data: {[n: number]: number}}>[] = []
 
 treeIds.map(treeId => {
   const feature = geoJson.features.find(f => {
-    return f.properties.id === Number(treeId.id)
+    return f.properties.林班 === Number(treeId.id)
   })
   if (feature) {
     features.push({
       ...feature,
-      properties: {id: Number(treeId.id), data: treeId.data}
+      properties: {id: Number(treeId.id), data: treeId.area}
     })
   }
 })
-geoJson.features = features
 const e = {
   ...geoJson,
   features: features
 }
-fs.writeFileSync('./out/treeKind.geojson', JSON.stringify(e))
-
+fs.writeFileSync(argv._[2], JSON.stringify(e))
 

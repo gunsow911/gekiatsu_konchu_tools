@@ -11,6 +11,10 @@
     "jismesh-js": "^0.2.0",
     "readline-transform": "^1.0.0",
     "stream-transform": "^3.0.4",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.7.0",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.17"
   }
 }
