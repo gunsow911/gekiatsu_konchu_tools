@@ -29,11 +29,13 @@ treeIds.map(treeId => {
   })
   if (feature) {
 
+
+    const accuracy = 4
     // 精度を削減
     const coordinates = feature.geometry.coordinates.map((a) => {
       return a.map((b) => {
         return b.map((c) => {
-           return [Number(c[0].toFixed(4)), Number(c[1].toFixed(4))]
+           return [Number(c[0].toFixed(accuracy)), Number(c[1].toFixed(accuracy))]
         })
       })
     }) 
