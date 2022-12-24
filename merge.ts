@@ -28,8 +28,22 @@ treeIds.map(treeId => {
     return f.properties.林班 === Number(treeId.id)
   })
   if (feature) {
+
+    // 精度を削減
+    const coordinates = feature.geometry.coordinates.map((a) => {
+      return a.map((b) => {
+        return b.map((c) => {
+           return [Number(c[0].toFixed(4)), Number(c[1].toFixed(4))]
+        })
+      })
+    }) 
+
     features.push({
       ...feature,
+      geometry: {
+        ...feature.geometry,
+        coordinates: coordinates
+      },
       properties: {id: Number(treeId.id), data: treeId.area}
     })
   }
