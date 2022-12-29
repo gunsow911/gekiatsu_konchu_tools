@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@turf/centroid": "^6.5.0",
+    "@turf/simplify": "^6.5.0",
     "@types/geojson": "^7946.0.8",
     "@types/node": "^17.0.23",
     "@types/readline-transform": "^1.0.1",

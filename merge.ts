@@ -2,6 +2,7 @@ import fs from 'fs'
 import { Feature, FeatureCollection, GeoJSON, MultiPolygon } from 'geojson';
 import yargs from 'yargs'
 import centroid from '@turf/centroid'
+import simplify from '@turf/simplify'
 
 /**
  * シェープファイルからエクスポートしたGeoJSONに樹林簿データをマージする 
@@ -38,6 +39,17 @@ treeIds.map(treeId => {
 
     // 精度
     const accuracy = 4
+
+    // 重心
+    const centroidFeature = centroid(feature)
+    const centroidLatLng = {
+      lat: Number(centroidFeature.geometry.coordinates[1].toFixed(accuracy)),
+      lng: Number(centroidFeature.geometry.coordinates[0].toFixed(accuracy)),
+    }
+
+    // 簡略化の度合
+    const tolerance = 0.0001 
+    simplify(feature, {tolerance: tolerance, highQuality:true, mutate:true})
     const coordinates = feature.geometry.coordinates.map((a) => {
       return a.map((b) => {
         return b.map((c) => {
@@ -46,13 +58,6 @@ treeIds.map(treeId => {
       })
     }) 
 
-
-    // 重心
-    const centroidFeature = centroid(feature)
-    const centroidLatLng = {
-      lat: Number(centroidFeature.geometry.coordinates[1].toFixed(accuracy)),
-      lng: Number(centroidFeature.geometry.coordinates[0].toFixed(accuracy)),
-    }
 
     features.push({
       ...feature,
