@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { Feature, FeatureCollection, GeoJSON, MultiPolygon } from 'geojson';
 import yargs from 'yargs'
+import centroid from '@turf/centroid'
 
 /**
  * シェープファイルからエクスポートしたGeoJSONに樹林簿データをマージする 
@@ -9,6 +10,12 @@ import yargs from 'yargs'
 type TreeId = {
   id: string
   area: {[n: string]: number}
+}
+
+type TreeReportProperties = {
+  id: number
+  data: {[n: number]: number}
+  centroid: {lat: number, lng: number}
 }
 
 
@@ -21,7 +28,7 @@ const geoJsonInput = fs.readFileSync(argv._[1], 'utf-8');
 const treeIds = JSON.parse(reportInput) as TreeId[]
 const geoJson = JSON.parse(geoJsonInput) as FeatureCollection<MultiPolygon, {林班: number}>
 
-const features: Feature<MultiPolygon, {id: number, data: {[n: number]: number}}>[] = []
+const features: Feature<MultiPolygon, TreeReportProperties>[] = []
 
 treeIds.map(treeId => {
   const feature = geoJson.features.find(f => {
@@ -29,9 +36,8 @@ treeIds.map(treeId => {
   })
   if (feature) {
 
-
+    // 精度
     const accuracy = 4
-    // 精度を削減
     const coordinates = feature.geometry.coordinates.map((a) => {
       return a.map((b) => {
         return b.map((c) => {
@@ -40,13 +46,25 @@ treeIds.map(treeId => {
       })
     }) 
 
+
+    // 重心
+    const centroidFeature = centroid(feature)
+    const centroidLatLng = {
+      lat: Number(centroidFeature.geometry.coordinates[1].toFixed(accuracy)),
+      lng: Number(centroidFeature.geometry.coordinates[0].toFixed(accuracy)),
+    }
+
     features.push({
       ...feature,
       geometry: {
         ...feature.geometry,
         coordinates: coordinates
       },
-      properties: {id: Number(treeId.id), data: treeId.area}
+      properties: {
+        id: Number(treeId.id),
+        data: treeId.area,
+        centroid: centroidLatLng,
+      }
     })
   }
 })
